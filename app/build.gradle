@@ -1,0 +1,76 @@
+apply plugin: 'com.android.model.application'
+
+model {
+    android {
+        compileSdkVersion 25
+        buildToolsVersion "25.0.2"
+        defaultConfig {
+            applicationId "com.neonorb.mish_android"
+            minSdkVersion.apiLevel 15
+            targetSdkVersion.apiLevel 25
+            versionCode 1
+            versionName "1.0"
+            testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        }
+        ndk {
+            moduleName "mish-android"
+            ldLibs.add("log")
+            cppFlags.add("-std=c++14")
+            cppFlags.add("-Wno-implicit-exception-spec-mismatch")
+            cppFlags.add("-fPIC")
+            //cppFlags.add("-DBITS64")
+            // ${targetPlatform.getName()}
+            // ${buildType.getName()}
+            stl "c++_static"
+            abiFilters.addAll(["armeabi"])
+            // only build for x86_64 because that's all Feta and Mish support atm
+        }
+        buildTypes {
+            release {
+                minifyEnabled false
+                proguardFiles.add(file("proguard-rules.pro"))
+            }
+        }
+        sources {
+            main {
+                jni {
+                    source {
+                        srcDir "src"
+                    }
+                    dependencies {
+                        library "feta" linkage "static"
+                        library "mish" linkage "static"
+                    }
+                }
+            }
+        }
+    }
+    repositories {
+        libs(PrebuiltLibraries) {
+            feta {
+                headers.srcDir "../../feta/include/"
+                binaries.withType(StaticLibraryBinary) {
+                    println "${targetPlatform.getName()}"
+                    staticLibraryFile = file("../../feta/build/libfeta.a")
+                }
+            }
+        }
+        libs(PrebuiltLibraries) {
+            mish {
+                headers.srcDir "../../mish/include/"
+                binaries.withType(StaticLibraryBinary) {
+                    staticLibraryFile = file("../../mish/build/libmish.a")
+                }
+            }
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    compile 'com.android.support:appcompat-v7:25.1.0'
+    testCompile 'junit:junit:4.12'
+}
