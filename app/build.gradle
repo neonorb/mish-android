@@ -17,13 +17,20 @@ model {
             ldLibs.add("log")
             cppFlags.add("-std=c++14")
             cppFlags.add("-Wno-implicit-exception-spec-mismatch")
-            cppFlags.add("-fPIC")
-            //cppFlags.add("-DBITS64")
-            // ${targetPlatform.getName()}
-            // ${buildType.getName()}
-            stl "c++_static"
-            abiFilters.addAll(["armeabi"])
-            // only build for x86_64 because that's all Feta and Mish support atm
+            //stl "c++_static"
+            abiFilters.addAll([
+                    "armeabi",
+                    "x86_64"
+            ])
+        }
+        abis {
+            create("armeabi") {
+                cppFlags.add("-fPIC")
+                cppFlags.add("-DBITS32")
+            }
+            create("x86_64") {
+                cppFlags.add("-DBITS64")
+            }
         }
         buildTypes {
             release {
@@ -50,8 +57,7 @@ model {
             feta {
                 headers.srcDir "../../feta/include/"
                 binaries.withType(StaticLibraryBinary) {
-                    println "${targetPlatform.getName()}"
-                    staticLibraryFile = file("../../feta/build/libfeta.a")
+                    staticLibraryFile = file("../../feta/build/${targetPlatform.getName()}/libfeta.a")
                 }
             }
         }
@@ -59,7 +65,7 @@ model {
             mish {
                 headers.srcDir "../../mish/include/"
                 binaries.withType(StaticLibraryBinary) {
-                    staticLibraryFile = file("../../mish/build/libmish.a")
+                    staticLibraryFile = file("../../mish/build/${targetPlatform.getName()}/libmish.a")
                 }
             }
         }
